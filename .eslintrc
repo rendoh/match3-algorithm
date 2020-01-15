@@ -1,0 +1,36 @@
+{
+  "extends": ["eslint:recommended", "plugin:prettier/recommended"],
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "prettier/prettier": [
+      "error",
+      {
+        "semi": false,
+        "singleQuote": true,
+        "trailingComma": "all"
+      }
+    ],
+    "no-useless-constructor": 0,
+    "@typescript-eslint/no-useless-constructor": 2,
+    "no-unused-vars": 0,
+    "@typescript-eslint/no-unused-vars": 2,
+    "no-console": 1,
+    "prefer-const": 2,
+    "no-var": 2
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "jsx": true,
+    "useJSXTextNode": true,
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "modules": true
+    }
+  },
+  "env": {
+    "es6": true,
+    "browser": true,
+    "node": true
+  }
+}
