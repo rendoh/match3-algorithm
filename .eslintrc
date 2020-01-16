@@ -28,6 +28,15 @@
       "modules": true
     }
   },
+  "overrides": [
+    {
+      "files": ["**/*.ts"],
+      "rules": {
+        "no-undef": 0,
+        "react/prop-types": 0
+      }
+    }
+  ],
   "env": {
     "es6": true,
     "browser": true,
