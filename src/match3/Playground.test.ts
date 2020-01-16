@@ -25,6 +25,19 @@ describe('transposeField', () => {
 })
 
 describe('Playground', () => {
+  test('初期化時はクラスタが存在せず、かつ、操作可能な対象が1つ以上存在する', () => {
+    const randRange = (min: number, max: number) =>
+      Math.floor(Math.random() * (max - min + 1) + min)
+    for (let i = 0; i < 1000; i++) {
+      const playground = new Playground(
+        randRange(4, 10),
+        randRange(4, 10),
+        randRange(4, 6),
+      )
+      expect(playground.getMovables()).not.toHaveLength(0)
+      expect(playground.getClusters()).toHaveLength(0)
+    }
+  })
   describe('クラスタの取得', () => {
     test('行クラスタを正しく取得できる', () => {
       const playground = Playground.createManually([

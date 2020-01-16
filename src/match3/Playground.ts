@@ -34,7 +34,13 @@ export default class Playground {
     return playground
   }
 
-  constructor(columns: number, rows: number, max: number = 5) {
+  constructor(columns: number, rows: number, private max: number = 5) {
+    if (columns < 4) {
+      throw new RangeError('The `columns` argument must be more than 3.')
+    }
+    if (rows < 4) {
+      throw new RangeError('The `rows` argument must be more than 3.')
+    }
     if (max < 4) {
       throw new RangeError('The `max` argument must be more than 3.')
     }
@@ -42,12 +48,35 @@ export default class Playground {
   }
 
   private createField(columns: number, rows: number, max: number) {
-    for (let row = 0; row < rows; row++) {
-      this.field[row] = []
-      for (let column = 0; column < columns; column++) {
-        this.field[row][column] = getRandomInt(max)
+    let done = false
+
+    while (!done) {
+      for (let row = 0; row < rows; row++) {
+        this.field[row] = []
+        for (let column = 0; column < columns; column++) {
+          this.field[row][column] = getRandomInt(max)
+        }
+      }
+
+      let clusters = this.getClusters()
+      while (clusters.length > 0) {
+        this.resolveCurrentFrame()
+        clusters = this.getClusters()
+      }
+
+      if (this.getMovables().length > 0) {
+        done = true
       }
     }
+  }
+
+  public resolveCurrentFrame() {
+    this.shift()
+    this.field = this.field.map(row =>
+      row.map(cell =>
+        typeof cell === 'number' ? cell : getRandomInt(this.max),
+      ),
+    )
   }
 
   public swap(x1: number, y1: number, x2: number, y2: number) {
