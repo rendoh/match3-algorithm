@@ -7,6 +7,13 @@ export type Cluster = {
   horizontal: boolean
 }
 
+export type Movable = {
+  x1: number
+  y1: number
+  x2: number
+  y2: number
+}
+
 /**
  * 行列を入れ替えたフィールドを返す
  */
@@ -54,11 +61,7 @@ function _getClusters(field: Field, horizontal: boolean = true): Cluster[] {
   }, [])
 }
 
-export function getClusters(field: Field): Cluster[] {
-  const horizontalClusters = _getClusters(field)
-  const verticalClusters = _getClusters(field, false)
-  return [...horizontalClusters, ...verticalClusters]
-}
+// export function getMovables(field: Field): Movable[] {}
 
 function getRandomInt(max: number): number {
   return Math.floor(Math.random() * max)
@@ -113,8 +116,14 @@ export default class Playground {
     return this.field
   }
 
+  public getClusters(): Cluster[] {
+    const horizontalClusters = _getClusters(this.field)
+    const verticalClusters = _getClusters(this.field, false)
+    return [...horizontalClusters, ...verticalClusters]
+  }
+
   private removeClusters() {
-    const clusters = getClusters(this.field)
+    const clusters = this.getClusters()
     clusters.forEach(cluster => {
       if (cluster.horizontal) {
         for (
