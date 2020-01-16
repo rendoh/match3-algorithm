@@ -1,9 +1,4 @@
-export type Field = FieldCell[][]
-
-export class FieldCell {
-  shift: 0 = 0
-  constructor(public type: number) {}
-}
+export type Field = number[][]
 
 export type Cluster = {
   column: number
@@ -27,7 +22,7 @@ function _getClusters(field: Field, horizontal: boolean = true): Cluster[] {
       (_clusters, column, columnIndex) => {
         let done = false
         const nextColumn = row[columnIndex + 1]
-        if (nextColumn && column.type === nextColumn.type) {
+        if (typeof nextColumn === 'number' && column === nextColumn) {
           mathces += 1
         } else {
           done = true
@@ -79,16 +74,12 @@ export default class Playground {
     for (let row = 0; row < rows; row++) {
       this.field[row] = []
       for (let column = 0; column < columns; column++) {
-        this.field[row][column] = new FieldCell(Math.floor(Math.random() * max))
+        this.field[row][column] = Math.floor(Math.random() * max)
       }
     }
   }
 
-  public getField(): Readonly<Field> {
-    return this.field
-  }
-
-  public getClusters() {
-    return getClusters(this.field)
-  }
+  // public swap(x1: number, y1: number, x2: number, y2: number) {
+  //   ;[this.field[x1][y1], this.field[x2][y2]]
+  // }
 }
