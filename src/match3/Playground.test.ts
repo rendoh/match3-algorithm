@@ -20,7 +20,7 @@ describe('transposeField', () => {
 })
 
 describe('Playground', () => {
-  describe('getClusters', () => {
+  describe('クラスタの取得', () => {
     test('行クラスタを正しく取得できる', () => {
       const playground = Playground.createManually([
         [0, 0, 0, 1, 2],
@@ -81,7 +81,7 @@ describe('Playground', () => {
       expect(playground.getClusters()).toEqual(expected)
     })
   })
-  test('swap', () => {
+  test('セルを入れ替える', () => {
     const playground = Playground.createManually([
       [0, 0, 0, 0, 0],
       [0, 0, 1, 0, 0],
@@ -101,7 +101,7 @@ describe('Playground', () => {
     ])
   })
 
-  test('drySwap', () => {
+  test('非破壊でセルを入れ替えたフィールドを返す', () => {
     const playground = Playground.createManually([
       [0, 0, 0, 0, 0],
       [0, 0, 1, 0, 0],
@@ -128,7 +128,7 @@ describe('Playground', () => {
     ])
   })
 
-  test('shift', () => {
+  test('クラスタを削除し、下方向に詰める', () => {
     const _ = null
     const playground = Playground.createManually([
       [0, 0, 0, 0, 2],
