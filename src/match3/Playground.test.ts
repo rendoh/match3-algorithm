@@ -135,6 +135,7 @@ describe('Playground', () => {
   })
 
   test('shift', () => {
+    const _ = null
     const playground = Playground.createManually([
       [0, 0, 0, 0, 2],
       [1, 0, 2, 2, 2],
@@ -145,16 +146,14 @@ describe('Playground', () => {
       [1, 0, 3, 4, 0],
     ])
     playground.shift()
-    /* eslint-disable prettier/prettier */
     expect(playground.getField()).toEqual([
-      [null, null, null, null, null],
-      [1   , null, null, null, null],
-      [null, null, null, 1   , null],
-      [1   , 2   , 3   , 4   , 0   ],
-      [1   , null, null, null, null],
-      [2   , null, 2   , 3   , 4   ],
-      [1   , null, 3   , 4   , 0   ],
+      [_, _, _, _, _],
+      [_, _, _, _, _],
+      [1, _, _, _, _],
+      [1, _, _, 1, _],
+      [1, _, 3, 4, 0],
+      [2, _, 2, 3, 4],
+      [1, 2, 3, 4, 0],
     ])
-    /* eslint-enable prettier/prettier */
   })
 })

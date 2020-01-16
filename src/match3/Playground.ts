@@ -19,10 +19,10 @@ function _getClusters(field: Field, horizontal: boolean = true): Cluster[] {
   return targetField.reduce<Cluster[]>((clusters, row, rowIndex) => {
     let mathces = 1
     const rowClusters = row.reduce<Cluster[]>(
-      (_clusters, column, columnIndex) => {
+      (_clusters, cell, columnIndex) => {
         let done = false
-        const nextColumn = row[columnIndex + 1]
-        if (typeof nextColumn === 'number' && column === nextColumn) {
+        const nextCell = row[columnIndex + 1]
+        if (typeof nextCell === 'number' && cell === nextCell) {
           mathces += 1
         } else {
           done = true
@@ -98,13 +98,13 @@ export default class Playground {
 
   public drySwap(x1: number, y1: number, x2: number, y2: number): Field {
     return this.field.map((row, rowIndex) =>
-      row.map((column, columnIndex) => {
+      row.map((cell, columnIndex) => {
         if (rowIndex === y1 && columnIndex === x1) {
           return this.field[y2][x2]
         } else if (rowIndex === y2 && columnIndex === x2) {
           return this.field[y1][x1]
         }
-        return column
+        return cell
       }),
     )
   }
@@ -134,13 +134,20 @@ export default class Playground {
 
   public shift() {
     this.removeClusters()
-    // const rowLength = this.field.length
+    const rowLength = this.field.length
     const transposedField = transposeField(this.field)
-    const closedTransposedField = transposedField.map(row =>
-      row.filter(column => column !== null),
+    const closedTransposedField = transposedField.map(column =>
+      column.filter(cell => cell !== null),
     )
-    // TODO: padstart
-    const shiftedField = transposeField(closedTransposedField)
+    const filledTransposedField: Field = closedTransposedField.map(column => {
+      const closedRowLength = column.length
+      const delta = rowLength - closedRowLength
+      if (delta === 0) {
+        return column
+      }
+      return [...Array(delta).fill(null), ...column]
+    })
+    const shiftedField = transposeField(filledTransposedField)
     this.field = shiftedField
   }
 }
