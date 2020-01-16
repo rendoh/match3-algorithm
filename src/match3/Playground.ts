@@ -21,48 +21,6 @@ export function transposeField(field: Field): Field {
   return field[0].map((_, columnIndex) => field.map(row => row[columnIndex]))
 }
 
-function _getClusters(field: Field, horizontal: boolean = true): Cluster[] {
-  const targetField = horizontal ? field : transposeField(field)
-  return targetField.reduce<Cluster[]>((clusters, row, rowIndex) => {
-    let mathces = 1
-    const rowClusters = row.reduce<Cluster[]>(
-      (_clusters, cell, columnIndex) => {
-        let done = false
-        const nextCell = row[columnIndex + 1]
-        if (typeof nextCell === 'number' && cell === nextCell) {
-          mathces += 1
-        } else {
-          done = true
-        }
-        if (done) {
-          if (mathces >= 3) {
-            let column = columnIndex + 1 - mathces
-            let row = rowIndex
-            if (!horizontal) {
-              ;[column, row] = [row, column]
-            }
-            const cluster: Cluster = {
-              column,
-              row,
-              length: mathces,
-              horizontal,
-            }
-            mathces = 1
-            return [..._clusters, cluster]
-          }
-          mathces = 1
-        }
-
-        return _clusters
-      },
-      [],
-    )
-    return [...clusters, ...rowClusters]
-  }, [])
-}
-
-// export function getMovables(field: Field): Movable[] {}
-
 function getRandomInt(max: number): number {
   return Math.floor(Math.random() * max)
 }
@@ -116,9 +74,49 @@ export default class Playground {
     return this.field
   }
 
+  private getUnidirectionalClusters(horizontal: boolean = true): Cluster[] {
+    const targetField = horizontal ? this.field : transposeField(this.field)
+    return targetField.reduce<Cluster[]>((clusters, row, rowIndex) => {
+      let mathces = 1
+      const rowClusters = row.reduce<Cluster[]>(
+        (_clusters, cell, columnIndex) => {
+          let done = false
+          const nextCell = row[columnIndex + 1]
+          if (typeof nextCell === 'number' && cell === nextCell) {
+            mathces += 1
+          } else {
+            done = true
+          }
+          if (done) {
+            if (mathces >= 3) {
+              let column = columnIndex + 1 - mathces
+              let row = rowIndex
+              if (!horizontal) {
+                ;[column, row] = [row, column]
+              }
+              const cluster: Cluster = {
+                column,
+                row,
+                length: mathces,
+                horizontal,
+              }
+              mathces = 1
+              return [..._clusters, cluster]
+            }
+            mathces = 1
+          }
+
+          return _clusters
+        },
+        [],
+      )
+      return [...clusters, ...rowClusters]
+    }, [])
+  }
+
   public getClusters(): Cluster[] {
-    const horizontalClusters = _getClusters(this.field)
-    const verticalClusters = _getClusters(this.field, false)
+    const horizontalClusters = this.getUnidirectionalClusters()
+    const verticalClusters = this.getUnidirectionalClusters(false)
     return [...horizontalClusters, ...verticalClusters]
   }
 
