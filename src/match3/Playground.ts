@@ -63,6 +63,12 @@ export function getClusters(field: Field): Cluster[] {
 export default class Playground {
   private field: Field = []
 
+  public static createManually(field: Field): Playground {
+    const playground = new Playground(field.length, field[0].length)
+    playground.field = field
+    return playground
+  }
+
   constructor(columns: number, rows: number, max: number = 5) {
     if (max < 4) {
       throw new RangeError('The `max` argument must be more than 3.')
@@ -79,7 +85,27 @@ export default class Playground {
     }
   }
 
-  // public swap(x1: number, y1: number, x2: number, y2: number) {
-  //   ;[this.field[x1][y1], this.field[x2][y2]]
-  // }
+  public swap(x1: number, y1: number, x2: number, y2: number) {
+    ;[this.field[y1][x1], this.field[y2][x2]] = [
+      this.field[y2][x2],
+      this.field[y1][x1],
+    ]
+  }
+
+  public drySwap(x1: number, y1: number, x2: number, y2: number): Field {
+    return this.field.map((row, rowIndex) =>
+      row.map((column, columnIndex) => {
+        if (rowIndex === y1 && columnIndex === x1) {
+          return this.field[y2][x2]
+        } else if (rowIndex === y2 && columnIndex === x2) {
+          return this.field[y1][x1]
+        }
+        return column
+      }),
+    )
+  }
+
+  public getField(): Readonly<Field> {
+    return this.field
+  }
 }

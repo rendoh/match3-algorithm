@@ -1,4 +1,9 @@
-import { transposeField, Field, getClusters, Cluster } from './Playground'
+import Playground, {
+  transposeField,
+  Field,
+  getClusters,
+  Cluster,
+} from './Playground'
 
 describe('transposeField', () => {
   test('非破壊で行列を入れ替える', () => {
@@ -78,5 +83,54 @@ describe('getClusters', () => {
     ]
 
     expect(getClusters(field)).toEqual(expected)
+  })
+})
+
+describe('Playground', () => {
+  test('swap', () => {
+    const playground = Playground.createManually([
+      [0, 0, 0, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 2, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+    ])
+
+    playground.swap(2, 1, 2, 2)
+
+    expect(playground.getField()).toEqual([
+      [0, 0, 0, 0, 0],
+      [0, 0, 2, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+    ])
+  })
+
+  test('drySwap', () => {
+    const playground = Playground.createManually([
+      [0, 0, 0, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 2, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+    ])
+
+    const swappedField = playground.drySwap(2, 1, 2, 2)
+
+    expect(playground.getField()).toEqual([
+      [0, 0, 0, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 2, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+    ])
+    expect(swappedField).toEqual([
+      [0, 0, 0, 0, 0],
+      [0, 0, 2, 0, 0],
+      [0, 0, 1, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+    ])
   })
 })
