@@ -1,4 +1,4 @@
-export type Field = number[][]
+export type Field = (number | null)[][]
 
 export type Cluster = {
   column: number
@@ -60,6 +60,10 @@ export function getClusters(field: Field): Cluster[] {
   return [...horizontalClusters, ...verticalClusters]
 }
 
+function getRandomInt(max: number): number {
+  return Math.floor(Math.random() * max)
+}
+
 export default class Playground {
   private field: Field = []
 
@@ -80,7 +84,7 @@ export default class Playground {
     for (let row = 0; row < rows; row++) {
       this.field[row] = []
       for (let column = 0; column < columns; column++) {
-        this.field[row][column] = Math.floor(Math.random() * max)
+        this.field[row][column] = getRandomInt(max)
       }
     }
   }
@@ -107,5 +111,36 @@ export default class Playground {
 
   public getField(): Readonly<Field> {
     return this.field
+  }
+
+  private removeClusters() {
+    const clusters = getClusters(this.field)
+    clusters.forEach(cluster => {
+      if (cluster.horizontal) {
+        for (
+          let column = cluster.column;
+          column < cluster.column + cluster.length;
+          column++
+        ) {
+          this.field[cluster.row][column] = null
+        }
+      } else {
+        for (let row = cluster.row; row < cluster.row + cluster.length; row++) {
+          this.field[row][cluster.column] = null
+        }
+      }
+    })
+  }
+
+  public shift() {
+    this.removeClusters()
+    // const rowLength = this.field.length
+    const transposedField = transposeField(this.field)
+    const closedTransposedField = transposedField.map(row =>
+      row.filter(column => column !== null),
+    )
+    // TODO: padstart
+    const shiftedField = transposeField(closedTransposedField)
+    this.field = shiftedField
   }
 }
