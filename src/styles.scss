@@ -4,3 +4,42 @@
   margin: 0;
   padding: 0;
 }
+
+body {
+  background-color: #e0e5ec;
+}
+
+.playground {
+  .row {
+    display: flex;
+    .cell {
+      margin: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      background-color: #e0e5ec;
+      transition: all 0.3s ease-out;
+      box-shadow: 4px 4px 10px rgb(163, 177, 198, 0.6),
+        -4px -4px 10px rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      &:hover {
+        box-shadow: 12px 12px 20px rgb(163, 177, 198, 0.6),
+          -12px -12px 20px rgba(255, 255, 255, 0.5);
+      }
+      &.is-selected {
+        box-shadow: inset -4px -4px 10px rgba(255, 255, 255, 0.5),
+          inset 4px 4px 10px rgb(163, 177, 198, 0.6);
+      }
+      &.is-cluster {
+        box-shadow: inset -20px -20px 10px rgba(255, 255, 255, 0.5),
+          inset 20px 20px 10px rgb(163, 177, 198, 0.6);
+      }
+    }
+  }
+}
