@@ -57,13 +57,19 @@ export default class Playground {
     ]
   }
 
-  public drySwap(x1: number, y1: number, x2: number, y2: number): Field {
-    return this.field.map((row, rowIndex) =>
+  public drySwap(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    field: Field = this.field,
+  ): Field {
+    return field.map((row, rowIndex) =>
       row.map((cell, columnIndex) => {
         if (rowIndex === y1 && columnIndex === x1) {
-          return this.field[y2][x2]
+          return field[y2][x2]
         } else if (rowIndex === y2 && columnIndex === x2) {
-          return this.field[y1][x1]
+          return field[y1][x1]
         }
         return cell
       }),
@@ -74,8 +80,11 @@ export default class Playground {
     return this.field
   }
 
-  private getUnidirectionalClusters(horizontal: boolean = true): Cluster[] {
-    const targetField = horizontal ? this.field : transposeField(this.field)
+  private getUnidirectionalClusters(
+    field: Field,
+    horizontal: boolean = true,
+  ): Cluster[] {
+    const targetField = horizontal ? field : transposeField(field)
     return targetField.reduce<Cluster[]>((clusters, row, rowIndex) => {
       let mathces = 1
       const rowClusters = row.reduce<Cluster[]>(
@@ -114,10 +123,47 @@ export default class Playground {
     }, [])
   }
 
-  public getClusters(): Cluster[] {
-    const horizontalClusters = this.getUnidirectionalClusters()
-    const verticalClusters = this.getUnidirectionalClusters(false)
+  public getClusters(field: Field = this.field): Cluster[] {
+    const horizontalClusters = this.getUnidirectionalClusters(field)
+    const verticalClusters = this.getUnidirectionalClusters(field, false)
     return [...horizontalClusters, ...verticalClusters]
+  }
+
+  private getUnidirectionalMovables(horizontal: boolean = true): Movable[] {
+    const targetField = horizontal ? this.field : transposeField(this.field)
+    return targetField.reduce<Movable[]>((movables, row, rowIndex) => {
+      const rowMovables = row.reduce<Movable[]>((_movables, _, columnIndex) => {
+        const swappedField = this.drySwap(
+          columnIndex,
+          rowIndex,
+          columnIndex + 1,
+          rowIndex,
+          targetField,
+        )
+        const clusters = this.getClusters(swappedField)
+        if (clusters.length === 0) {
+          return _movables
+        }
+        const movable: Movable = {
+          x1: columnIndex,
+          y1: rowIndex,
+          x2: columnIndex + 1,
+          y2: rowIndex,
+        }
+        if (!horizontal) {
+          ;[movable.x1, movable.y1] = [movable.y1, movable.x1]
+          ;[movable.x2, movable.y2] = [movable.y2, movable.x2]
+        }
+        return [..._movables, movable]
+      }, [])
+      return [...movables, ...rowMovables]
+    }, [])
+  }
+
+  public getMovables(): Movable[] {
+    const horizontalMovables = this.getUnidirectionalMovables()
+    const verticalMovables = this.getUnidirectionalMovables(false)
+    return [...horizontalMovables, ...verticalMovables]
   }
 
   private removeClusters() {
