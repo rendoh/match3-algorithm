@@ -1,6 +1,4 @@
-import Playground from './match3/Playground'
-import initDOMRenderer from './dom-renderer'
+import Match3 from './match-3-balls/Match3'
 
-const playground = new Playground(10, 7, 4)
-
-initDOMRenderer(playground)
+const match3 = new Match3(8, 6, [0xda6836, 0x6ca4a9, 0xb94c76, 0x8a966f])
+console.log(match3.getField())
