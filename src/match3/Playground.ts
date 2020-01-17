@@ -41,8 +41,8 @@ export default class Playground {
     if (rows < 4) {
       throw new RangeError('The `rows` argument must be more than 3.')
     }
-    if (max < 4) {
-      throw new RangeError('The `max` argument must be more than 3.')
+    if (max < 2) {
+      throw new RangeError('The `max` argument must be more than 1.')
     }
     this.createField(columns, rows, max)
   }
