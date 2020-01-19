@@ -5,6 +5,9 @@ import Ball from './Ball'
 const BALL_GUTTER = 10
 const BALL_RADIUS = 40
 
+const getDistance = (x1: number, y1: number, x2: number, y2: number) =>
+  Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+
 export default class Match3 {
   private pixiApp = new PIXI.Application({
     width: window.innerWidth,
@@ -72,9 +75,20 @@ export default class Match3 {
   private createBall(): Ball {
     const ball = new Ball(this.getRandomColor(), BALL_RADIUS)
     this.pixiContainer.addChild(ball.graphics)
+    let swapTargets: Ball[] = []
+    let swapped: Ball | null = null
 
     ball.on('dragstart', () => {
       console.log(ball.graphics.x, ball.graphics.y)
+      const ballPosition = this.getBallPosition(ball)
+      if (!ballPosition) return
+      const { x, y } = ballPosition
+      swapTargets = []
+      swapTargets.push(this.field[y - 1] && this.field[y - 1][x])
+      swapTargets.push(this.field[y + 1] && this.field[y + 1][x])
+      swapTargets.push(this.field[y][x + 1])
+      swapTargets.push(this.field[y][x - 1])
+      swapTargets = swapTargets.filter(ball => !!ball)
     })
 
     ball.on('dragging', (x, y) => {
@@ -84,13 +98,48 @@ export default class Match3 {
 
     ball.on('dragend', () => {
       ball.resetPosition()
+      swapped = null
+      swapTargets = []
     })
 
     ball.on('dragging', (x, y) => {
-      console.log(x, y)
+      swapTargets.forEach(targetBall => {
+        const distance = getDistance(
+          x,
+          y,
+          targetBall.graphics.x,
+          targetBall.graphics.y,
+        )
+        if (distance < 50) {
+          if (swapped !== targetBall) {
+            targetBall.moveTo(
+              ball.dragStartPosition.x!,
+              ball.dragStartPosition.y!,
+              100,
+            )
+          }
+          swapped = targetBall
+        } else {
+          /**
+           * 初期位置と違う位置にいたら、初期位置に戻る
+           * TODO: columnIndex, rowIndex から x, y を取得できるようにする
+           *
+           * 本来の位置と、表示上の位置を分けたほうがよい？
+           */
+        }
+      })
     })
     return ball
   }
 
-  private getBallPosition(ball): { x: number; y: number } {}
+  private getBallPosition(ball: Ball): { x: number; y: number } | null {
+    for (const [rowIndex, row] of this.field.entries()) {
+      for (const [columnIndex, _ball] of row.entries()) {
+        if (ball === _ball) {
+          return { x: columnIndex, y: rowIndex }
+        }
+      }
+    }
+    return null
+  }
 }

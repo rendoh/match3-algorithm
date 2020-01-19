@@ -6,7 +6,7 @@ type DragHandler = (x: number, y: number) => void
 export default class Ball {
   public graphics = new PIXI.Graphics()
   public dragging = false
-  public prevPosition: { x: number | null; y: number | null } = {
+  public dragStartPosition: { x: number | null; y: number | null } = {
     x: null,
     y: null,
   }
@@ -29,7 +29,7 @@ export default class Ball {
       const pisition = event.data.getLocalPosition(graphics.parent)
       this.dragEndHandlers.forEach(cb => cb(pisition.x, pisition.y))
       this.dragging = false
-      this.prevPosition = {
+      this.dragStartPosition = {
         x: null,
         y: null,
       }
@@ -39,14 +39,14 @@ export default class Ball {
 
     graphics.on('pointerdown', (event: PIXI.interaction.InteractionEvent) => {
       this.dragging = true
-      this.prevPosition = {
+      this.dragStartPosition = {
         x: this.graphics.x,
         y: this.graphics.y,
       }
       this.graphics.zIndex = 1
       this.graphics.cursor = 'grabbing'
       const position = event.data.getLocalPosition(graphics.parent)
-      this.draggingHandlers.forEach(cb => cb(position.x, position.y))
+      this.dragStartHandlers.forEach(cb => cb(position.x, position.y))
     })
 
     graphics.on('pointerup', dragend)
@@ -64,8 +64,8 @@ export default class Ball {
       new TWEEN.Tween(this.graphics)
         .to(
           {
-            x: this.prevPosition.x,
-            y: this.prevPosition.y,
+            x: this.dragStartPosition.x,
+            y: this.dragStartPosition.y,
           },
           duration,
         )
