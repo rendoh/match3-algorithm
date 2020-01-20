@@ -25,7 +25,7 @@ export default class Match3Renderer {
     transparent: false,
     resolution: window.devicePixelRatio,
     autoDensity: true,
-    backgroundColor: 0x333333,
+    backgroundColor: 0x464646,
   })
   private pixiContainer = new PIXI.Container()
   private staticBallPositions: BallPosition[][] = []
@@ -65,8 +65,8 @@ export default class Match3Renderer {
   private initPixi() {
     const { pixiContainer, pixiApp } = this
     pixiContainer.sortableChildren = true
-    pixiContainer.x = pixiApp.screen.width / 2
-    pixiContainer.y = pixiApp.screen.height / 2
+    pixiContainer.x = pixiApp.screen.width / 2 + this.radius
+    pixiContainer.y = pixiApp.screen.height / 2 + this.radius
     pixiContainer.pivot.x = pixiContainer.width / 2
     pixiContainer.pivot.y = pixiContainer.height / 2
     pixiApp.stage.addChild(pixiContainer)
