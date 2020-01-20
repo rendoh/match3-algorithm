@@ -33,8 +33,12 @@ export default class Match3Renderer {
   private swapTarget: Ball | null = null
   private swapHandlers: SwapHandler[] = []
 
-  constructor(public field: Field, private radius: number, gutter: number) {
-    this.initBalls(radius, gutter)
+  constructor(
+    public viewField: Field,
+    private radius: number,
+    private gutter: number,
+  ) {
+    this.initBalls()
     this.initPixi()
   }
 
@@ -44,18 +48,16 @@ export default class Match3Renderer {
     this.pixiApp.destroy()
   }
 
-  private initBalls(radius: number, gutter: number) {
-    this.field.forEach((row, rowIndex) => {
+  private initBalls() {
+    this.viewField.forEach((row, rowIndex) => {
       this.staticBallPositions.push([])
       row.forEach((ball, columnIndex) => {
         if (!ball) return
-        const gap = radius * 2 + gutter
+        const gap = this.radius * 2 + this.gutter
         const x = columnIndex * gap
         const y = rowIndex * gap
         this.staticBallPositions[rowIndex].push({ x, y })
-        Object.assign(ball.graphics, { x, y })
-        this.handleDragging(ball)
-        this.pixiContainer.addChild(ball.graphics)
+        this.initBall(ball, x, y)
       })
     })
   }
@@ -78,10 +80,10 @@ export default class Match3Renderer {
       if (!coordinate) return
       const { column, row } = coordinate
       const targets: (Ball | null)[] = [
-        this.field[row - 1] && this.field[row - 1][column],
-        this.field[row + 1] && this.field[row + 1][column],
-        this.field[row][column + 1],
-        this.field[row][column - 1],
+        this.viewField[row - 1] && this.viewField[row - 1][column],
+        this.viewField[row + 1] && this.viewField[row + 1][column],
+        this.viewField[row][column + 1],
+        this.viewField[row][column - 1],
       ]
       this.swapTargets = targets.filter<Ball>((ball): ball is Ball => !!ball)
     })
@@ -129,7 +131,7 @@ export default class Match3Renderer {
   }
 
   public getBallCoordinate(ball: Ball): Coordinate | null {
-    for (const [rowIndex, row] of this.field.entries()) {
+    for (const [rowIndex, row] of this.viewField.entries()) {
       for (const [columnIndex, _ball] of row.entries()) {
         if (ball === _ball) {
           return { column: columnIndex, row: rowIndex }
@@ -153,7 +155,7 @@ export default class Match3Renderer {
 
   public updateBallPositions() {
     return new Promise(resolve => {
-      const promises = this.field.map(row => {
+      const promises = this.viewField.map(row => {
         return row.map(ball => {
           if (!ball) return
           const coordinate = this.getBallCoordinate(ball)
@@ -172,5 +174,17 @@ export default class Match3Renderer {
   public async removeBall(ball: Ball) {
     await ball.remove()
     this.pixiContainer.removeChild(ball.graphics)
+  }
+
+  public initBall(ball: Ball, x: number, y: number) {
+    Object.assign(ball.graphics, { x, y })
+    this.handleDragging(ball)
+    this.pixiContainer.addChild(ball.graphics)
+  }
+
+  public async addBall(ball: Ball) {
+    const { column, row } = this.getBallCoordinate(ball)!
+    const { x, y } = this.staticBallPositions[row][column]
+    this.initBall(ball, x, y)
   }
 }

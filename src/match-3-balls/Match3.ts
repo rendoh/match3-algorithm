@@ -218,10 +218,11 @@ export default class Match3 {
             column < cluster.column + cluster.length;
             column++
           ) {
-            const promise = this.renderer?.removeBall(
-              this.field[cluster.row][column]!,
-            )
-            stack.push(promise)
+            const ball = this.field[cluster.row][column]
+            if (ball) {
+              const promise = this.renderer?.removeBall(ball)
+              stack.push(promise)
+            }
             this.field[cluster.row][column] = null
           }
         } else {
@@ -230,11 +231,12 @@ export default class Match3 {
             row < cluster.row + cluster.length;
             row++
           ) {
-            const promise = this.renderer?.removeBall(
-              this.field[row][cluster.column]!,
-            )
+            const ball = this.field[row][cluster.column]
+            if (ball) {
+              const promise = this.renderer?.removeBall(ball)
+              stack.push(promise)
+            }
             this.field[row][cluster.column] = null
-            stack.push(promise)
           }
         }
       })
@@ -275,7 +277,7 @@ export default class Match3 {
   private setField(field: Field) {
     this.field = field
     if (this.renderer) {
-      this.renderer.field = field
+      this.renderer.viewField = field
     }
   }
 }
