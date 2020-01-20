@@ -182,9 +182,13 @@ export default class Match3Renderer {
     this.pixiContainer.addChild(ball.graphics)
   }
 
-  public async addBall(ball: Ball) {
+  public async addBall(ball: Ball, emptyLength: number[]) {
     const { column, row } = this.getBallCoordinate(ball)!
     const { x, y } = this.staticBallPositions[row][column]
-    this.initBall(ball, x, y)
+    this.initBall(
+      ball,
+      x,
+      y - emptyLength[column] * this.radius * 2 + this.gutter,
+    )
   }
 }

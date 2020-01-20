@@ -28,10 +28,9 @@ type Field = (Ball | null)[][]
 
 export default class Match3 {
   private field: Field = []
-  private renderer: Match3Renderer
+  private renderer: Match3Renderer | null = null
   private colors: number[] = []
   private radius: number
-  private clusters: Cluster[] = []
 
   constructor({
     columns = 6,
@@ -70,14 +69,14 @@ export default class Match3 {
       let clusters = this.getClusters()
       while (clusters.length > 0) {
         await this.resolveCurrentFrame()
-        await this.renderer.updateBallPositions()
+        await this.renderer?.updateBallPositions()
         clusters = this.getClusters()
       }
     })
   }
 
   public destroy() {
-    this.renderer.destroy()
+    this.renderer?.destroy()
   }
 
   public getField(): Readonly<Field> {
@@ -111,8 +110,8 @@ export default class Match3 {
   }
 
   private swapBalls(ball1: Ball, ball2: Ball) {
-    const coordinate1 = this.renderer.getBallCoordinate(ball1)!
-    const coordinate2 = this.renderer.getBallCoordinate(ball2)!
+    const coordinate1 = this.renderer?.getBallCoordinate(ball1)!
+    const coordinate2 = this.renderer?.getBallCoordinate(ball2)!
     this.swapByCoordinates(
       coordinate1.column,
       coordinate1.row,
@@ -219,8 +218,8 @@ export default class Match3 {
             column++
           ) {
             const ball = this.field[cluster.row][column]
-            if (ball) {
-              const promise = this.renderer?.removeBall(ball)
+            if (ball && this.renderer) {
+              const promise = this.renderer.removeBall(ball)
               stack.push(promise)
             }
             this.field[cluster.row][column] = null
@@ -232,8 +231,8 @@ export default class Match3 {
             row++
           ) {
             const ball = this.field[row][cluster.column]
-            if (ball) {
-              const promise = this.renderer?.removeBall(ball)
+            if (ball && this.renderer) {
+              const promise = this.renderer.removeBall(ball)
               stack.push(promise)
             }
             this.field[row][cluster.column] = null
@@ -265,13 +264,28 @@ export default class Match3 {
 
   private async resolveCurrentFrame() {
     await this.shift()
+    const addedBalls: Ball[] = []
+    const transposed = transposeField(this.field)
+    const empties = transposed.map(column => {
+      let emptyLength = 0
+      column.some(ball => {
+        if (ball) return true
+        emptyLength++
+      })
+      return emptyLength
+    })
+
     this.setField(
       this.field.map(row =>
-        row.map(
-          ball => ball || new Ball(pickUpRandomValue(this.colors), this.radius),
-        ),
+        row.map(ball => {
+          if (ball) return ball
+          const newBall = new Ball(pickUpRandomValue(this.colors), this.radius)
+          addedBalls.push(newBall)
+          return newBall
+        }),
       ),
     )
+    addedBalls.forEach(newBall => this.renderer?.addBall(newBall, empties))
   }
 
   private setField(field: Field) {
