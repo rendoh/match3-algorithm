@@ -152,16 +152,20 @@ export default class Match3Renderer {
   }
 
   public updateBallPositions() {
-    this.field.forEach(row => {
-      row.forEach(ball => {
-        if (!ball) return
-        const coordinate = this.getBallCoordinate(ball)
-        if (!coordinate) return
-        const position = this.staticBallPositions[coordinate.row][
-          coordinate.column
-        ]
-        ball.moveTo(position.x, position.y)
+    return new Promise(resolve => {
+      const promises = this.field.map(row => {
+        return row.map(ball => {
+          if (!ball) return
+          const coordinate = this.getBallCoordinate(ball)
+          if (!coordinate) return
+          const position = this.staticBallPositions[coordinate.row][
+            coordinate.column
+          ]
+          return ball.moveTo(position.x, position.y)
+        })
       })
+
+      Promise.all(promises.flat(Infinity)).then(resolve)
     })
   }
 

@@ -31,6 +31,7 @@ export default class Match3 {
   private renderer: Match3Renderer
   private colors: number[] = []
   private radius: number
+  private clusters: Cluster[] = []
 
   constructor({
     columns = 6,
@@ -41,18 +42,21 @@ export default class Match3 {
   }: Options) {
     this.colors = colors
     this.radius = radius
+    this.init(columns, rows, gutter)
+  }
 
+  private async init(columns: number, rows: number, gutter: number) {
     let done = false
     while (!done) {
       this.field = [...Array(rows)].map(() =>
         [...Array(columns)].map(
-          () => new Ball(pickUpRandomValue(colors), radius),
+          () => new Ball(pickUpRandomValue(this.colors), this.radius),
         ),
       )
 
       let clusters = this.getClusters()
       while (clusters.length > 0) {
-        this.resolveCurrentFrame()
+        await this.resolveCurrentFrame()
         clusters = this.getClusters()
       }
 
@@ -60,11 +64,15 @@ export default class Match3 {
         done = true
       }
     }
-    this.renderer = new Match3Renderer(this.field, radius, gutter)
-    this.renderer.on('swap', (b1, b2) => {
+    this.renderer = new Match3Renderer(this.field, this.radius, gutter)
+    this.renderer.on('swap', async (b1, b2) => {
       this.swapBalls(b1, b2)
-      this.resolveCurrentFrame()
-      this.renderer.updateBallPositions()
+      let clusters = this.getClusters()
+      while (clusters.length > 0) {
+        await this.resolveCurrentFrame()
+        await this.renderer.updateBallPositions()
+        clusters = this.getClusters()
+      }
     })
   }
 
@@ -200,28 +208,42 @@ export default class Match3 {
   }
 
   private removeClusters() {
-    const clusters = this.getClusters()
-    clusters.forEach(cluster => {
-      if (cluster.horizontal) {
-        for (
-          let column = cluster.column;
-          column < cluster.column + cluster.length;
-          column++
-        ) {
-          this.renderer?.removeBall(this.field[cluster.row][column]!)
-          this.field[cluster.row][column] = null
+    return new Promise(resolve => {
+      const clusters = this.getClusters()
+      const stack: Promise<void>[] = []
+      clusters.forEach(cluster => {
+        if (cluster.horizontal) {
+          for (
+            let column = cluster.column;
+            column < cluster.column + cluster.length;
+            column++
+          ) {
+            const promise = this.renderer?.removeBall(
+              this.field[cluster.row][column]!,
+            )
+            stack.push(promise)
+            this.field[cluster.row][column] = null
+          }
+        } else {
+          for (
+            let row = cluster.row;
+            row < cluster.row + cluster.length;
+            row++
+          ) {
+            const promise = this.renderer?.removeBall(
+              this.field[row][cluster.column]!,
+            )
+            this.field[row][cluster.column] = null
+            stack.push(promise)
+          }
         }
-      } else {
-        for (let row = cluster.row; row < cluster.row + cluster.length; row++) {
-          this.renderer?.removeBall(this.field[row][cluster.column]!)
-          this.field[row][cluster.column] = null
-        }
-      }
+      })
+      Promise.all(stack).then(resolve)
     })
   }
 
-  private shift() {
-    this.removeClusters()
+  private async shift() {
+    await this.removeClusters()
     const rowLength = this.field.length
     const transposedField = transposeField(this.field)
     const closedTransposedField = transposedField.map(column =>
@@ -239,8 +261,8 @@ export default class Match3 {
     this.setField(shiftedField)
   }
 
-  private resolveCurrentFrame() {
-    this.shift()
+  private async resolveCurrentFrame() {
+    await this.shift()
     this.field = this.field.map(row =>
       row.map(
         ball => ball || new Ball(pickUpRandomValue(this.colors), this.radius),
