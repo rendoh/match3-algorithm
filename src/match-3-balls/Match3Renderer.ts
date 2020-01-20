@@ -13,6 +13,10 @@ type Coordinate = {
   row: number
 }
 
+type Field = (Ball | null)[][]
+
+type SwapHandler = (b1: Ball, b2: Ball) => void
+
 export default class Match3Renderer {
   private pixiApp = new PIXI.Application({
     width: window.innerWidth,
@@ -26,13 +30,16 @@ export default class Match3Renderer {
   private pixiContainer = new PIXI.Container()
   private staticBallPositions: BallPosition[][] = []
   private swapTargets: Ball[] = []
+  private swapTarget: Ball | null = null
+  private swapHandlers: SwapHandler[] = []
 
-  constructor(private field: Ball[][], private radius: number, gutter: number) {
+  constructor(public field: Field, private radius: number, gutter: number) {
     this.initBalls(radius, gutter)
     this.initPixi()
   }
 
   public destroy() {
+    this.pixiApp.view.parentNode?.removeChild(this.pixiApp.view)
     TWEEN.removeAll()
     this.pixiApp.destroy()
   }
@@ -41,6 +48,7 @@ export default class Match3Renderer {
     this.field.forEach((row, rowIndex) => {
       this.staticBallPositions.push([])
       row.forEach((ball, columnIndex) => {
+        if (!ball) return
         const gap = radius * 2 + gutter
         const x = columnIndex * gap
         const y = rowIndex * gap
@@ -69,16 +77,18 @@ export default class Match3Renderer {
       const coordinate = this.getBallCoordinate(ball)
       if (!coordinate) return
       const { column, row } = coordinate
-      this.swapTargets = [
+      const targets: (Ball | null)[] = [
         this.field[row - 1] && this.field[row - 1][column],
         this.field[row + 1] && this.field[row + 1][column],
         this.field[row][column + 1],
         this.field[row][column - 1],
-      ].filter(ball => !!ball)
+      ]
+      this.swapTargets = targets.filter<Ball>((ball): ball is Ball => !!ball)
     })
     ball.on('dragging', (x, y) => {
       ball.graphics.x = x
       ball.graphics.y = y
+      this.swapTarget = null
       this.swapTargets.forEach(targetBall => {
         const { row, column } = this.getBallCoordinate(targetBall)!
         const staticPosition = this.staticBallPositions[row][column]
@@ -87,6 +97,7 @@ export default class Match3Renderer {
           const { row, column } = this.getBallCoordinate(ball)!
           const { x, y } = this.staticBallPositions[row][column]
           targetBall.moveTo(x, y, 100)
+          this.swapTarget = targetBall
         } else {
           targetBall.moveTo(staticPosition.x, staticPosition.y, 100)
         }
@@ -95,15 +106,29 @@ export default class Match3Renderer {
     ball.on('dragend', () => {
       const coordinate = this.getBallCoordinate(ball)
       if (!coordinate) return
-      const position = this.staticBallPositions[coordinate.row][
-        coordinate.column
-      ]
-      ball.moveTo(position.x, position.y, 300, TWEEN.Easing.Elastic.Out)
+      if (this.swapTarget) {
+        const coordinate = this.getBallCoordinate(this.swapTarget)
+        const position = this.staticBallPositions[coordinate!.row][
+          coordinate!.column
+        ]
+        ball.moveTo(position.x, position.y)
+        this.swapHandlers.forEach(callback => {
+          callback(ball, this.swapTarget!)
+        })
+      } else {
+        // reset position
+        const position = this.staticBallPositions[coordinate.row][
+          coordinate.column
+        ]
+        ball.moveTo(position.x, position.y, 300, TWEEN.Easing.Elastic.Out)
+      }
+
       this.swapTargets = []
+      this.swapTarget = null
     })
   }
 
-  private getBallCoordinate(ball: Ball): Coordinate | null {
+  public getBallCoordinate(ball: Ball): Coordinate | null {
     for (const [rowIndex, row] of this.field.entries()) {
       for (const [columnIndex, _ball] of row.entries()) {
         if (ball === _ball) {
@@ -112,5 +137,36 @@ export default class Match3Renderer {
       }
     }
     return null
+  }
+
+  public on(eventType: 'swap', callback: SwapHandler) {
+    if (eventType === 'swap') {
+      this.swapHandlers.push(callback)
+    }
+  }
+
+  public off(eventType: 'swap', callback: SwapHandler) {
+    if (eventType === 'swap') {
+      this.swapHandlers = this.swapHandlers.filter(cb => cb !== callback)
+    }
+  }
+
+  public updateBallPositions() {
+    this.field.forEach(row => {
+      row.forEach(ball => {
+        if (!ball) return
+        const coordinate = this.getBallCoordinate(ball)
+        if (!coordinate) return
+        const position = this.staticBallPositions[coordinate.row][
+          coordinate.column
+        ]
+        ball.moveTo(position.x, position.y)
+      })
+    })
+  }
+
+  public async removeBall(ball: Ball) {
+    await ball.remove()
+    this.pixiContainer.removeChild(ball.graphics)
   }
 }

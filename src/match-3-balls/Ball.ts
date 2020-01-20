@@ -97,4 +97,14 @@ export default class Ball {
         .start()
     })
   }
+
+  public remove() {
+    return new Promise(resolve => {
+      new TWEEN.Tween(this.graphics.scale)
+        .to({ x: 0, y: 0 }, 300)
+        .easing(TWEEN.Easing.Back.In)
+        .onComplete(resolve)
+        .start()
+    })
+  }
 }
