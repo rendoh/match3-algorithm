@@ -263,9 +263,11 @@ export default class Match3 {
 
   private async resolveCurrentFrame() {
     await this.shift()
-    this.field = this.field.map(row =>
-      row.map(
-        ball => ball || new Ball(pickUpRandomValue(this.colors), this.radius),
+    this.setField(
+      this.field.map(row =>
+        row.map(
+          ball => ball || new Ball(pickUpRandomValue(this.colors), this.radius),
+        ),
       ),
     )
   }
