@@ -45,6 +45,7 @@ export default class Match3 {
   }
 
   private async init(columns: number, rows: number, gutter: number) {
+    const spoon = new Ball(0x000000, this.radius)
     let done = false
     while (!done) {
       this.field = [...Array(rows)].map(() =>
@@ -59,10 +60,13 @@ export default class Match3 {
         clusters = this.getClusters()
       }
 
+      this.field[0][columns - 1] = spoon
+
       if (this.getMovables().length > 0) {
         done = true
       }
     }
+
     this.renderer = new Match3Renderer(this.field, this.radius, gutter)
     this.renderer.on('swap', async (b1, b2) => {
       this.swapBalls(b1, b2)
@@ -74,7 +78,13 @@ export default class Match3 {
         while (clusters.length > 0) {
           await this.resolveCurrentFrame()
           await this.renderer?.updateBallPositions()
+          if (this.field[rows - 1].includes(spoon)) {
+            this.renderer?.complete(spoon)
+          }
           clusters = this.getClusters()
+        }
+        if (this.getMovables().length === 0) {
+          alert('ゲームオーバーっす')
         }
       }
     })

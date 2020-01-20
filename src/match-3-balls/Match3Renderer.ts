@@ -49,6 +49,7 @@ export default class Match3Renderer {
   }
 
   private initBalls() {
+    console.log(this.viewField)
     this.viewField.forEach((row, rowIndex) => {
       this.staticBallPositions.push([])
       row.forEach((ball, columnIndex) => {
@@ -190,5 +191,23 @@ export default class Match3Renderer {
       x,
       y - emptyLength[column] * this.radius * 2 + this.gutter,
     )
+  }
+
+  private runSpoon(spoon: Ball) {
+    new TWEEN.Tween(spoon.graphics)
+      .to({ x: 0 }, 100)
+      .easing(TWEEN.Easing.Linear.None)
+      .start()
+  }
+
+  public complete(spoon: Ball) {
+    this.runSpoon(spoon)
+    this.viewField.forEach(row => {
+      row.forEach(ball => {
+        if (ball && ball !== spoon) {
+          this.removeBall(ball)
+        }
+      })
+    })
   }
 }
