@@ -67,10 +67,15 @@ export default class Match3 {
     this.renderer.on('swap', async (b1, b2) => {
       this.swapBalls(b1, b2)
       let clusters = this.getClusters()
-      while (clusters.length > 0) {
-        await this.resolveCurrentFrame()
+      if (clusters.length === 0) {
+        this.swapBalls(b2, b1)
         await this.renderer?.updateBallPositions()
-        clusters = this.getClusters()
+      } else {
+        while (clusters.length > 0) {
+          await this.resolveCurrentFrame()
+          await this.renderer?.updateBallPositions()
+          clusters = this.getClusters()
+        }
       }
     })
   }
