@@ -24,6 +24,7 @@ export default class Match3 {
 
     this.renderer.on('swap', async (x1, y1, x2, y2) => {
       this.field.swap(x1, y1, x2, y2)
+      this.deactivate()
       if (this.field.getClusters().length === 0) {
         this.field.swap(x1, y1, x2, y2)
         this.renderer.updateBallPositions()
@@ -31,10 +32,12 @@ export default class Match3 {
         while (this.field.getClusters().length > 0) {
           const removedBalls = this.field.resolveClusters()
           await this.renderer.removeBalls(removedBalls)
-          this.field.shift()
-          await this.renderer.updateBallPositions()
+          const deltas = this.field.shift()
           const addedBalls = this.field.addBalls()
-          await this.renderer.addBalls(addedBalls)
+          await Promise.all([
+            this.renderer.updateBallPositions(),
+            this.renderer.addBalls(addedBalls, deltas),
+          ])
         }
         if (!this.field.isMovable()) {
           const result = confirm('ゲームオーバーです。リセットしますか？')
@@ -43,6 +46,7 @@ export default class Match3 {
           }
         }
       }
+      this.activate()
     })
   }
 
@@ -54,5 +58,13 @@ export default class Match3 {
     await this.renderer.removeBalls(this.field.getAllBalls())
     this.field.initialize()
     this.renderer.initializeCells()
+  }
+
+  private deactivate() {
+    this.getView().style.pointerEvents = 'none'
+  }
+
+  private activate() {
+    this.getView().style.pointerEvents = ''
   }
 }

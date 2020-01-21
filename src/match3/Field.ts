@@ -97,7 +97,8 @@ export default class Field {
     return removedBalls
   }
 
-  public shift() {
+  public shift(): number[] {
+    const deltas: number[] = []
     const rowLength = this.rows.length
     const transposedRows = transposeField(this.rows)
     const closedTransposedRows = transposedRows.map(column =>
@@ -106,12 +107,14 @@ export default class Field {
     const filledTransposedField: Rows = closedTransposedRows.map(column => {
       const closedRowLength = column.length
       const delta = rowLength - closedRowLength
+      deltas.push(delta)
       if (delta === 0) {
         return column
       }
       return [...Array(delta).fill(null), ...column]
     })
     this.rows = transposeField(filledTransposedField)
+    return deltas
   }
 
   public addBalls(): Ball[] {

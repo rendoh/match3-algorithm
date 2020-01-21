@@ -89,8 +89,8 @@ export default class Renderer {
     return this.app.view
   }
 
-  private initBall(ball: Ball, position?: Position) {
-    Object.assign(ball.graphics, position || this.getStaticPositionByBall(ball))
+  private initBall(ball: Ball, position: Position) {
+    Object.assign(ball.graphics, position)
     this.container.addChild(ball.graphics)
     this.handleDragging(ball)
   }
@@ -227,13 +227,28 @@ export default class Renderer {
     })
   }
 
-  public addBalls(balls: Ball[]) {
+  public addBalls(balls: Ball[], deltas: number[]) {
+    const gap = this.radius * 2 + this.gutter
     return new Promise(resolve => {
-      return Promise.all(
-        balls.map(async ball => {
-          this.initBall(ball)
-          await ball.appear()
-        }),
+      Promise.all(
+        this.field.rows
+          .map(row => {
+            return row.map((cell, cellIndex) => {
+              if (cell && balls.includes(cell)) {
+                const delta = deltas[cellIndex]
+                const position = this.getStaticPositionByBall(cell)
+                if (!position) return
+                const shiftedPosition = {
+                  x: position.x,
+                  y: position.y - delta * gap,
+                }
+                this.initBall(cell, shiftedPosition)
+                cell.appear()
+                return cell.moveTo(position.x, position.y)
+              }
+            })
+          })
+          .flat(Infinity),
       ).then(resolve)
     })
   }
