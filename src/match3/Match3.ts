@@ -7,6 +7,8 @@ type Match3Options = {
   colors?: number[]
   radius?: number
   gutter?: number
+  backgroundColor?: number
+  el?: HTMLElement
 }
 
 export default class Match3 {
@@ -18,9 +20,17 @@ export default class Match3 {
     colors = [0xff7f7f, 0x7fbfff, 0x7fff7f],
     radius = 40,
     gutter = 10,
+    backgroundColor,
+    el,
   }: Match3Options = {}) {
     this.field = new Field(columns, rows, colors, radius)
-    this.renderer = new Renderer(this.field, radius, gutter)
+    this.renderer = new Renderer(
+      this.field,
+      radius,
+      gutter,
+      backgroundColor,
+      el,
+    )
 
     this.renderer.on('swap', async (x1, y1, x2, y2) => {
       this.field.swap(x1, y1, x2, y2)
@@ -48,6 +58,10 @@ export default class Match3 {
       }
       this.activate()
     })
+  }
+
+  private mount(el: HTMLElement) {
+    el.appendChild(this.getView())
   }
 
   public getView() {

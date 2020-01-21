@@ -34,6 +34,7 @@ export default class Renderer {
     private radius: number,
     private gutter: number,
     backgroundColor: number = 0xffffff,
+    el?: HTMLElement,
   ) {
     this.app = new Application({
       width: window.innerWidth,
@@ -44,6 +45,7 @@ export default class Renderer {
       autoDensity: true,
       backgroundColor,
     })
+    el?.appendChild(this.app.view)
     this.initStaticPositions()
     this.initializeCells()
     this.initPixi()
