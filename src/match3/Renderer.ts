@@ -216,7 +216,7 @@ export default class Renderer {
 
   public updateBallPositions() {
     return new Promise(resolve => {
-      const promises = this.field.rows.map(row => {
+      const promises = this.field.rows.flatMap(row => {
         return row.map(cell => {
           if (!cell) return
           const position = this.getStaticPositionByBall(cell)
@@ -225,7 +225,7 @@ export default class Renderer {
         })
       })
 
-      Promise.all(promises.flat(Infinity)).then(resolve)
+      Promise.all(promises).then(resolve)
     })
   }
 
@@ -233,24 +233,22 @@ export default class Renderer {
     const gap = this.radius * 2 + this.gutter
     return new Promise(resolve => {
       Promise.all(
-        this.field.rows
-          .map(row => {
-            return row.map((cell, cellIndex) => {
-              if (cell && balls.includes(cell)) {
-                const delta = deltas[cellIndex]
-                const position = this.getStaticPositionByBall(cell)
-                if (!position) return
-                const shiftedPosition = {
-                  x: position.x,
-                  y: position.y - delta * gap,
-                }
-                this.initBall(cell, shiftedPosition)
-                cell.appear()
-                return cell.moveTo(position.x, position.y)
+        this.field.rows.flatMap(row => {
+          return row.map((cell, cellIndex) => {
+            if (cell && balls.includes(cell)) {
+              const delta = deltas[cellIndex]
+              const position = this.getStaticPositionByBall(cell)
+              if (!position) return
+              const shiftedPosition = {
+                x: position.x,
+                y: position.y - delta * gap,
               }
-            })
+              this.initBall(cell, shiftedPosition)
+              cell.appear()
+              return cell.moveTo(position.x, position.y)
+            }
           })
-          .flat(Infinity),
+        }),
       ).then(resolve)
     })
   }

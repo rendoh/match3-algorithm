@@ -145,9 +145,8 @@ export default class Field {
 
   public getAllBalls(): Ball[] {
     return this.rows
-      .map(row => row.map(cell => cell))
-      .flat(Infinity)
-      .filter(cell => cell instanceof Ball)
+      .flatMap(row => row.map(cell => cell))
+      .filter((cell): cell is Ball => cell instanceof Ball)
   }
 }
 
